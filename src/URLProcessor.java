@@ -21,7 +21,6 @@ public class URLProcessor {
                     URL urlObj = new URL(url);
                     String host = urlObj.getHost();
                     String file = urlObj.getFile();
-                    System.out.println("Procesando URL: " + url);
                     try (SocketManager socketManager = new SocketManager(host, 80)) {
                         socketManager.sendGetRequest(file, host);
                         String response = socketManager.readResponse();

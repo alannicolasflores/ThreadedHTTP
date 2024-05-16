@@ -31,7 +31,7 @@ public class LinkExtractor {
             // Filtrar enlaces para incluir solo aquellos que sean archivos válidos o directorios que terminan en "/"
             if (url.matches(".*\\.(java|txt|zip|pdf|doc|docx|ppt|pptx|xls|xlsx|png|jpg|jpeg|gif|mp3|mp4|avi|mkv)") || url.endsWith("/")) {
                 // Imprimir URL completa para depuración
-                System.out.println("Processed URL: " + fullUrl);
+                System.out.println("<p>Processed URL: " + fullUrl + "</p>");
 
                 // Agregar URL a la lista de enlaces
                 links.add(fullUrl);

@@ -41,7 +41,7 @@ public class SocketManager implements Closeable {
                         break;
                     }
                 }
-                break; // Stop reading headers
+                break; // Dejar de leer los encabezados
             }
         }
 

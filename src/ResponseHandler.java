@@ -20,23 +20,29 @@ public class ResponseHandler {
 
     public void handleResponse(String response, URL urlObj) {
         int statusCode = getStatusCode(response);
-        System.out.println("Código de estado HTTP: " + statusCode + " para URL: " + urlObj);
+        String statusMessage = "Código de estado HTTP: " + statusCode + " para URL: " + urlObj;
+        System.out.println("<p>" + statusMessage + "</p>");
         if (statusCode == 200) {
             handle200OK(response, urlObj);
         } else if (statusCode == 301 || statusCode == 302) {
             String newUrl = getLocationFromHeaders(response);
             if (newUrl != null) {
+                System.out.println("<p>Redireccionado a: " + newUrl + "</p>");
                 URLProcessor processor = new URLProcessor(executor, visitedURLs, cliente);
                 processor.processURL(newUrl);
             }
         } else {
-            System.out.println("Código de estado HTTP no manejado: " + statusCode);
+            System.out.println("<p>Código de estado HTTP no manejado: " + statusCode + "</p>");
         }
     }
 
     public void handle200OK(String response, URL urlObj) {
         String content = getContent(response);
-        System.out.println("Contenido recibido de " + urlObj + ": " + (content.isEmpty() ? "No Content" : content.substring(0, Math.min(200, content.length()))));
+        if (content.isEmpty()) {
+            System.out.println("<p>Contenido recibido de " + urlObj + ": No Content</p>");
+        } else {
+            System.out.println("<p>Contenido recibido de " + urlObj + ": " + content.substring(0, Math.min(200, content.length())) + "</p>");
+        }
         if (isDirectory(content)) {
             List<String> links = LinkExtractor.extractLinks(urlObj.toString(), content);
             for (String link : links) {
@@ -67,7 +73,7 @@ public class ResponseHandler {
             java.nio.file.Path filePath = Paths.get("descargas", path.substring(1)); // Eliminar la primera barra
             Files.createDirectories(filePath.getParent()); // Crear directorios si no existen
             Files.write(filePath, content.getBytes(), StandardOpenOption.CREATE);
-            System.out.println("Archivo guardado: " + filePath.toString());
+            System.out.println("<p>Archivo guardado: " + filePath.toString() + "</p>");
         } catch (IOException e) {
             e.printStackTrace();
         }

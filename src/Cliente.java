@@ -28,15 +28,17 @@ public class Cliente {
     }
 
     public void processInitialUrls(List<String> urls) {
+        System.out.println("<html><body>");
         List<String> urlsNoDescargadas = verificarUrlsNoDescargadas(urls);
         for (String url : urlsNoDescargadas) {
             if (isValidURL(url)) {
                 URLProcessor processor = new URLProcessor(executor, visitedURLs, this);
                 processor.processURL(url);
             } else {
-                System.out.println("Formato de URL incorrecto: " + url);
+                System.out.println("<p>Formato de URL incorrecto: " + url + "</p>");
             }
         }
+        System.out.println("</body></html>");
     }
 
     public List<String> verificarUrlsNoDescargadas(List<String> urls) {

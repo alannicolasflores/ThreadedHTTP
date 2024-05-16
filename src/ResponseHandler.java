@@ -22,6 +22,7 @@ public class ResponseHandler {
         int statusCode = getStatusCode(response);
         String statusMessage = "Código de estado HTTP: " + statusCode + " para URL: " + urlObj;
         System.out.println("<p>" + statusMessage + "</p>");
+
         if (statusCode == 200) {
             handle200OK(response, urlObj);
         } else if (statusCode == 301 || statusCode == 302) {
@@ -31,6 +32,10 @@ public class ResponseHandler {
                 URLProcessor processor = new URLProcessor(executor, visitedURLs, cliente);
                 processor.processURL(newUrl);
             }
+        } else if (statusCode == 403) {
+            System.out.println("<p>Acceso prohibido a: " + urlObj + "</p>");
+        } else if (statusCode == 404) {
+            System.out.println("<p>Recurso no encontrado: " + urlObj + "</p>");
         } else {
             System.out.println("<p>Código de estado HTTP no manejado: " + statusCode + "</p>");
         }

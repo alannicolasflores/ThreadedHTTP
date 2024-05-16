@@ -22,7 +22,12 @@ public class Cliente {
         Cliente cliente = new Cliente();
         List<String> initialUrls = Arrays.asList(
                 "http://148.204.58.221/axel/aplicaciones/sockets/java/canales/flujo/",
-                "http://148.204.58.221/axel/aplicaciones/sockets/java/DatagramPacket.txt"
+                "http://148.204.58.221/axel/aplicaciones/sockets/java/DatagramPacket.txt",
+                "http://148.204.58.221/axel/aplicaciones/sockets/java/canales/Serializacion/",
+                "",
+                "http://148.204.58.221/axel/aplicaciones/1a_Evaluacion_Aplicaciones_2012.doc"
+                ,"http://148.204.58.221/axel/aplicaciones/1",
+                "http://148.204.58.221/axel/aplicaciones/sockets/java/archivo_que_no_existe.txt"  // URL para probar el 404
         );
         cliente.processInitialUrls(initialUrls);
     }

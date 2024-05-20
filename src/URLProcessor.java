@@ -21,11 +21,13 @@ public class URLProcessor {
                     URL urlObj = new URL(url);
                     String host = urlObj.getHost();
                     String file = urlObj.getFile();
+                    boolean isDirectory = file.endsWith("/");
+
                     try (SocketManager socketManager = new SocketManager(host, 80)) {
                         socketManager.sendGetRequest(file, host);
                         String response = socketManager.readResponse();
                         ResponseHandler handler = new ResponseHandler(executor, visitedURLs, cliente);
-                        handler.handleResponse(response, urlObj);
+                        handler.handleResponse(response, urlObj, isDirectory, file);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

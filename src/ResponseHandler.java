@@ -18,13 +18,13 @@ public class ResponseHandler {
         this.cliente = cliente;
     }
 
-    public void handleResponse(String response, URL urlObj) {
+    public void handleResponse(String response, URL urlObj, boolean isDirectory, String pathToFetch) {
         int statusCode = getStatusCode(response);
         String statusMessage = "Código de estado HTTP: " + statusCode + " para URL: " + urlObj;
         System.out.println("<p>" + statusMessage + "</p>");
 
         if (statusCode == 200) {
-            handle200OK(response, urlObj);
+            handle200OK(response, urlObj, isDirectory, pathToFetch);
         } else if (statusCode == 301 || statusCode == 302) {
             String newUrl = getLocationFromHeaders(response);
             if (newUrl != null) {
@@ -41,47 +41,52 @@ public class ResponseHandler {
         }
     }
 
-    public void handle200OK(String response, URL urlObj) {
+    public void handle200OK(String response, URL urlObj, boolean isDirectory, String pathToFetch) {
         String content = getContent(response);
         if (content.isEmpty()) {
             System.out.println("<p>Contenido recibido de " + urlObj + ": No Content</p>");
         } else {
             System.out.println("<p>Contenido recibido de " + urlObj + ": " + content.substring(0, Math.min(200, content.length())) + "</p>");
         }
-        if (isDirectory(content)) {
+        if (isDirectory) {
             List<String> links = LinkExtractor.extractLinks(urlObj.toString(), content);
             for (String link : links) {
                 URLProcessor processor = new URLProcessor(executor, visitedURLs, cliente);
                 processor.processURL(link);
             }
+            saveToFile(urlObj, content, true, pathToFetch); // Guardar el HTML del directorio
         } else {
-            saveToFile(urlObj, content);
+            saveToFile(urlObj, content, false, pathToFetch); // Guardar el archivo individual
         }
     }
 
-    public String getLocationFromHeaders(String response) {
-        String[] headers = response.split("\r\n");
-        for (String header : headers) {
-            if (header.startsWith("Location:")) {
-                return header.split(" ")[1].trim();
-            }
-        }
-        return null;
-    }
-
-    public void saveToFile(URL url, String content) {
+    public void saveToFile(URL url, String content, boolean isDirectory, String pathToFetch) {
         try {
             String path = url.getPath();
-            if (path.endsWith("/")) {
-                return; // No guardar directorios como archivos
+            java.nio.file.Path filePath;
+            if (isDirectory) {
+                filePath = Paths.get("descargas", path.substring(1), "index.html"); // Guardar directorios como index.html
+            } else {
+                filePath = Paths.get("descargas", path.substring(1)); // Guardar el archivo original
             }
-            java.nio.file.Path filePath = Paths.get("descargas", path.substring(1)); // Eliminar la primera barra
             Files.createDirectories(filePath.getParent()); // Crear directorios si no existen
+            if (isDirectory) {
+                content = updateLinks(content, url); // Actualizar los enlaces en el HTML del directorio
+            }
             Files.write(filePath, content.getBytes(), StandardOpenOption.CREATE);
             System.out.println("<p>Archivo guardado: " + filePath.toString() + "</p>");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String updateLinks(String content, URL url) {
+        // Actualizar los enlaces en el HTML para que apunten a la estructura de archivos local
+        String basePath = url.getPath();
+        String relativePath = basePath.substring(0, basePath.lastIndexOf('/'));
+        content = content.replaceAll("href=\"/", "href=\"" + relativePath + "/");
+        content = content.replaceAll("src=\"/", "src=\"" + relativePath + "/");
+        return content;
     }
 
     private int getStatusCode(String response) {
@@ -109,5 +114,15 @@ public class ResponseHandler {
 
     private boolean isDirectory(String content) {
         return content.contains("<html>") && content.contains("<a ");
+    }
+
+    private String getLocationFromHeaders(String response) {
+        String[] headers = response.split("\r\n");
+        for (String header : headers) {
+            if (header.startsWith("Location:")) {
+                return header.split(" ")[1].trim();
+            }
+        }
+        return null;
     }
 }

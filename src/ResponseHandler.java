@@ -44,7 +44,7 @@ public class ResponseHandler {
     public void handle200OK(String response, URL urlObj, boolean isDirectory, String pathToFetch) {
         String content = getContent(response);
         if (content.isEmpty()) {
-            System.out.println("<p>Contenido recibido de " + urlObj + ": No Content</p>");
+            System.out.println("<p>Contenido recibido de " + urlObj + " vacío.</p>");
         } else {
             System.out.println("<p>Contenido recibido de " + urlObj + ": " + content.substring(0, Math.min(200, content.length())) + "</p>");
         }
@@ -54,9 +54,29 @@ public class ResponseHandler {
                 URLProcessor processor = new URLProcessor(executor, visitedURLs, cliente);
                 processor.processURL(link);
             }
-            saveToFile(urlObj, content, true, pathToFetch); // Guardar el HTML del directorio
+            saveToFile(urlObj, content, true, pathToFetch);
         } else {
-            saveToFile(urlObj, content, false, pathToFetch); // Guardar el archivo individual
+            saveToFile(urlObj, content, false, pathToFetch);
+            handleParentDirectory(urlObj); // Llamar al método para manejar el directorio padre
+        }
+    }
+
+    public void handleParentDirectory(URL url) {
+        if (!url.getPath().endsWith("/")) {
+            try {
+                URL parentUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath().substring(0, url.getPath().lastIndexOf('/') + 1));
+                System.out.println("<p>Fetching parent directory: " + parentUrl + "</p>");
+                try (SocketManager socketManager = new SocketManager(parentUrl.getHost(), parentUrl.getPort() == -1 ? 80 : parentUrl.getPort())) {
+                    socketManager.sendGetRequest(parentUrl.getPath(), parentUrl.getHost());
+                    String parentResponse = socketManager.readResponse();
+                    String parentContent = getContent(parentResponse);
+                    if (!parentContent.isEmpty()) {
+                        saveToFile(parentUrl, parentContent, true, parentUrl.getPath());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -65,28 +85,16 @@ public class ResponseHandler {
             String path = url.getPath();
             java.nio.file.Path filePath;
             if (isDirectory) {
-                filePath = Paths.get("descargas", path.substring(1), "index.html"); // Guardar directorios como index.html
+                filePath = Paths.get("descargas", path.substring(1), "index.html");
             } else {
-                filePath = Paths.get("descargas", path.substring(1)); // Guardar el archivo original
+                filePath = Paths.get("descargas", path.substring(1));
             }
-            Files.createDirectories(filePath.getParent()); // Crear directorios si no existen
-            if (isDirectory) {
-                content = updateLinks(content, url); // Actualizar los enlaces en el HTML del directorio
-            }
+            Files.createDirectories(filePath.getParent());
             Files.write(filePath, content.getBytes(), StandardOpenOption.CREATE);
             System.out.println("<p>Archivo guardado: " + filePath.toString() + "</p>");
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String updateLinks(String content, URL url) {
-        // Actualizar los enlaces en el HTML para que apunten a la estructura de archivos local
-        String basePath = url.getPath();
-        String relativePath = basePath.substring(0, basePath.lastIndexOf('/'));
-        content = content.replaceAll("href=\"/", "href=\"" + relativePath + "/");
-        content = content.replaceAll("src=\"/", "src=\"" + relativePath + "/");
-        return content;
     }
 
     private int getStatusCode(String response) {
@@ -110,10 +118,6 @@ public class ResponseHandler {
             return response.substring(index + 4);
         }
         return "";
-    }
-
-    private boolean isDirectory(String content) {
-        return content.contains("<html>") && content.contains("<a ");
     }
 
     private String getLocationFromHeaders(String response) {

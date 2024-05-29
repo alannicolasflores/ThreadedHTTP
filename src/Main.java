@@ -5,13 +5,12 @@ public class Main {
     public static void main(String[] args) {
         List<String> initialUrls = Arrays.asList(
                 "http://148.204.58.221/axel/aplicaciones/sockets/java/",  // URL existente, debería devolver 200 OK
-                "http://148.204.58.221/axel/aplicaciones/sockets/java/noexist.html",  // URL inexistente, debería devolver 404 Not Found
                 "http://148.204.58.221/axel/aplicaciones/sockets/c/client.c",  // URL de un archivo, debería devolver 200 OK
-                "http://148.204.58.221/axel/aplicaciones/sockets/java/restricted/",  // URL restringida, potencialmente podría devolver 403 Forbidden
-                "http://148.204.58.221/axel/aplicaciones/sockets/java/redirect"  // URL que podría redirigir, para probar manejo de redirecciones
-
+                "http://httpstat.us/403" , // URL restringida, debería devolver 403 Forbidden
+                "http://httpstat.us/301",
+                "http://httpstat.us/302",  // URL que redirige
+                "http://148.204.58.221/axel/aplicaciones/sockets/java/noexist.html"  // URL inexistente, debería devolver 404 Not Found
         );
-
         // Instanciar clases necesarias
         URLValidator validator = new URLValidator();
         Downloader downloader = new Downloader();

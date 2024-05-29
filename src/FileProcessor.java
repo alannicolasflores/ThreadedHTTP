@@ -21,9 +21,10 @@ public class FileProcessor {
                 System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: 200</h1><h2>Status Message: OK</h2><div>File fetched and saved successfully for " + url + "</div></body></html>");
             }
         } else {
-            System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: " + response.statusCode + "</h1><h2>Status Message: " + response.statusMessage + "</h2><div>Error: Content not available</div></body></html>");
+            handleHttpError(response);
         }
     }
+
     private void fetchAndSaveHTMLForFile(String fileUrl) {
         try {
             String directoryUrl = fileUrl.substring(0, fileUrl.lastIndexOf('/') + 1);
@@ -33,12 +34,30 @@ public class FileProcessor {
                 fileManager.saveFile(new ByteArrayInputStream(htmlContent.getBytes(StandardCharsets.UTF_8)), directoryUrl + "index.html");
                 System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: 200</h1><h2>Status Message: OK</h2><div>HTML for directory fetched and saved successfully for " + directoryUrl + "</div></body></html>");
             } else {
-                System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: " + directoryResponse.statusCode + "</h1><h2>Status Message: " + directoryResponse.statusMessage + "</h2><div>Error fetching HTML for directory: " + directoryUrl + "</div></body></html>");
+                handleHttpError(directoryResponse);
             }
         } catch (Exception e) {
             System.out.println("Error fetching HTML for directory: " + e.getMessage());
         }
     }
+
+    private void handleHttpError(HttpResponse response) {
+        switch (response.statusCode) {
+            case HttpURLConnection.HTTP_FORBIDDEN:
+                System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: 403</h1><h2>Status Message: Forbidden</h2><div>Error: Access denied</div></body></html>");
+                break;
+            case HttpURLConnection.HTTP_MOVED_PERM:
+            case HttpURLConnection.HTTP_MOVED_TEMP:
+                System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: " + response.statusCode + "</h1><h2>Status Message: Redirected</h2><div>Error: Redirection not handled in this context</div></body></html>");
+                break;
+            case HttpURLConnection.HTTP_NOT_FOUND:
+                System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: 404</h1><h2>Status Message: Not Found</h2><div>Error: Resource not found</div></body></html>");
+                break;
+            default:
+                System.out.println("<html><head><title>HTTP Response</title></head><body><h1>Status Code: " + response.statusCode + "</h1><h2>Status Message: " + response.statusMessage + "</h2><div>Error: Content not available</div></body></html>");
+        }
+    }
+
     private void processDirectory(InputStream data, String url) {
         try {
             String htmlContent = streamToString(data);

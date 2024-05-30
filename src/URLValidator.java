@@ -7,21 +7,21 @@ public class URLValidator {
      */
     public boolean validate(String url) {
         try {
-            // Intenta crear un objeto URL y convertirlo a URI
+            // Intenta crear un objeto URL y convertirlo a URI para verificar su validez
             new java.net.URL(url).toURI();
-            return true;
+            return true;  // Retorna verdadero si la URL es válida
         } catch (java.net.MalformedURLException e) {
-            // La URL no está en formato válido
+            // Captura errores específicos de formato incorrecto de URL
             System.out.println("Invalid URL format: " + e.getMessage());
-            return false;
+            return false;  // Retorna falso si la URL tiene un formato incorrecto
         } catch (java.net.URISyntaxException e) {
-            // La URL no cumple con la sintaxis de URI
+            // Captura errores de sintaxis URI, que son más estrictos que simplemente formatos de URL
             System.out.println("Invalid URI syntax: " + e.getMessage());
-            return false;
+            return false;  // Retorna falso si la sintaxis URI no es válida
         } catch (Exception e) {
-            // Captura cualquier otra excepción inesperada
+            // Captura cualquier otra excepción inesperada que podría ocurrir durante la validación
             System.out.println("An error occurred during URL validation: " + e.getMessage());
-            return false;
+            return false;  // Retorna falso si ocurre un error no específico
         }
     }
 }
